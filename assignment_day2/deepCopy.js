@@ -6,17 +6,22 @@ const obj = {
     },
   },
 };
-let map = new Map();
 
 function show(obj) {
-  for (let ob in obj) {
-    map.set(ob,obj[ob]);
-    if(typeof obj[ob] === 'object'){
-       show(obj[ob]);
-    }
-    console.log(ob,obj[ob]);
+  if(obj === null || typeof obj !== 'object'){
+    return obj;
   }
+  let copy_obj = {};
+  Object.keys(obj).forEach((key) => {
+    if(obj.hasOwnProperty(key)){
+      copy_obj[key] = show(obj[key]);
+    }
+  });
+
+  return copy_obj;
 }
 
-show(obj);
-console.log(map);
+let cloneObj = show(obj);
+obj.c.d.e = 30;
+console.log(obj.c.d.e); // should print 30
+console.log(cloneObj.c.d.e); // should print 20
