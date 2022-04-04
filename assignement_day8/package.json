@@ -4,11 +4,12 @@
   "description": "",
   "main": "httpServer.js",
   "dependencies": {
-    "dotenv": "^16.0.0"
+    "dotenv": "^16.0.0",
+    "nodemon": "^2.0.15"
   },
-  "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon httpServer.js"
   },
   "author": "",
   "license": "ISC"
