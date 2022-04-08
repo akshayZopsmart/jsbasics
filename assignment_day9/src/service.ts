@@ -1,20 +1,25 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Todo, STATUS } from './userTodo';
+import http from 'http';
 import url from 'url';
 const todos: Array<Todo> = [];
 
-const getAllTodos = (request: any, response: any) => {
-    const reqURL = url.parse(request.url,true);
+const getAllTodos = (request: any, response: http.ServerResponse) => {
+    const reqURL = url.parse(request.url, true);
     console.log(reqURL.query);
     if (reqURL.query.title) {
-        let course = todos.find(todo => todo.title === reqURL.query.title);
-        if (course) {
+        let courses = [];
+        for (let course of todos) {
+            if (course.id === reqURL.query.title)
+                courses.push(course);
+        }
+        if (courses.length > 0) {
             response.statusCode = 202;
             response.setHeader('Content-Type', 'application/json')
-            response.end(JSON.stringify(course));
-        }else{
+            response.end(JSON.stringify(courses));
+        } else {
             response.statusCode = 404;
-            response.setHeader('Content-Type','application/json')
+            response.setHeader('Content-Type', 'application/json')
             response.end(JSON.stringify("404 Title Not Found"));
         }
     } else {
@@ -47,12 +52,12 @@ const createTodo = (request: any, response: any) => {
     request.on('end', () => {
         let json = JSON.parse(body);
         let object = {
-            id : uuidv4(),
+            id: uuidv4(),
             title: json.title,
             description: json.description,
             status: STATUS.NOT_ACTIVE,
-            createdDate : new Date(),
-            updatedDate : new Date()
+            createdDate: new Date(),
+            updatedDate: new Date()
         }
         let newTodo = new Todo(object);
         todos.push(newTodo);
