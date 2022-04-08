@@ -4,14 +4,16 @@
   "description": "",
   "main": "todo.js",
   "scripts": {
-    "start": "nodemon ./dest/controller.js",
+    "start": "nodemon koa.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@koa/router": "^10.1.1",
     "dotenv": "^16.0.0",
+    "koa-json": "^2.0.2",
     "nodemon": "^2.0.15",
     "uuid": "^8.3.2"
   },

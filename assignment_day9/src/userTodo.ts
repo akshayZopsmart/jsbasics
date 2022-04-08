@@ -3,24 +3,24 @@ enum STATUS {
     COMPLETED,
     NOT_ACTIVE
 }
-class Todo{
+class Todo {
     id: any;
     title: string;
     description: string;
     status: STATUS;
     createdDate: Date;
     updatedDate: Date;
-    constructor(id:any, title:string, description:string,status:STATUS) {
-                this.id = id;
-                this.title = title;
-                this.description = description;
-                this.status = status;
-                this.createdDate = new Date();
-                this.updatedDate = new Date();
+    constructor(object : any) {
+        this.id = object.id;
+        this.title = object.title;
+        this.description = object.description;
+        this.status = STATUS.NOT_ACTIVE;
+        this.createdDate = new Date();
+        this.updatedDate = new Date();
     }
 }
 
-
-module.exports = {
-    Todo, STATUS
+export{
+    STATUS,
+    Todo
 }
