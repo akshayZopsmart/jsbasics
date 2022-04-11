@@ -1,86 +1,76 @@
-import { v4 as uuidV4 } from "uuid";
 import koa from "koa";
 import Router from "@koa/router";
 import bodyParser from "koa-bodyparser";
 import json from "koa-json";
-import {
-	todos,
-	STATUS,
-	addTodo,
-	findTodoByTitle,
-	findTodoByID,
-	errorMessage,
-	updateTodoByID,
-} from "./Todo";
+import Joi from "joi";
+import logger from "koa-logger";
+import { STATUS } from "./Todo";
+import { getTodos, getTodosById ,getTodosByTitle} from "./readTodo";
+import { updateTodoByID } from "./updateTodo"
+import { addTodo } from "./createTodo";
+import { deleteTodo } from "./deleteTodo";
 
 const app = new koa();
 const router = new Router();
 
-app.use(json());
-app.use(bodyParser());
+app.use(json()).use(bodyParser()).use(logger());
 
 router.prefix("/todo");
 
-router.get("/", (ctx) => {
+router.get("/", (ctx: koa.Context) => {
 	if (ctx.query.title) {
-		ctx.status = 200;
-		ctx.body = findTodoByTitle(ctx.query.title);
+		getTodosByTitle(ctx,ctx.query.title.toString());
 	} else {
-		ctx.status = 200;
-		ctx.body = todos;
+		getTodos(ctx);
 	}
 });
 
-router.get("/:id", (ctx) => {
+router.get("/:id", (ctx: koa.Context) => {
 	const id = ctx.params.id;
-	const index = findTodoByID(id);
-	if (index !== -1) {
-		ctx.status = 200;
-		ctx.body = todos[index];
-	} else {
-		ctx.status = 404;
-		ctx.body = errorMessage(id);
-	}
+	getTodosById(ctx, id);
 });
 
-router.post("/", (ctx) => {
-	const id = uuidV4();
-	const todoObject = {
-		id: id,
-		title: ctx.request.body.title,
-		description: ctx.request.body.description,
-		status: STATUS.ACTIVE,
-		createdDate: new Date(),
-		updatedDate: new Date(),
-	};
-	addTodo(todoObject);
-	ctx.status = 200;
-	ctx.body = todoObject;
+router.post("/", (ctx: koa.Context) => {
+	const schema = Joi.object({
+		title: Joi.string().min(3).required(),
+		description: Joi.string().min(5),
+		status: Joi.string().valid(
+			STATUS.NOT_ACTIVE,
+			STATUS.ACTIVE,
+			STATUS.COMPLETED,
+			STATUS.IGNORED
+		),
+	});
+	const validation = schema.validate(ctx.request.body);
+	if (validation.error) {
+		ctx.status = 400;
+		ctx.body = validation.error.details[0].message;
+		return;
+	}
+	addTodo(ctx, ctx.request.body.status);
 });
 
-router.put("/:id", (ctx) => {
-	const id = ctx.params.id;
-	const index = findTodoByID(id);
-	if (index !== -1) {
-		ctx.status = 200;
-		ctx.body = updateTodoByID(index,ctx.request.body.status);
-	} else {
-		ctx.status = 404;
-		ctx.body = errorMessage(id);
+router.put("/:id", (ctx: koa.Context) => {
+	const schema = Joi.object({
+		status: Joi.string().valid(
+			STATUS.NOT_ACTIVE,
+			STATUS.ACTIVE,
+			STATUS.COMPLETED,
+			STATUS.IGNORED
+		),
+	});
+
+	const validation = schema.validate(ctx.request.body);
+	if (validation.error) {
+		ctx.status = 400;
+		ctx.body = validation.error.details[0].message;
+		return;
 	}
+	updateTodoByID(ctx, ctx.request.body.status);
 });
 
-router.del("/:id", (ctx) => {
-	const id = ctx.params.id;
-	const index = findTodoByID(id);
-	if (index !== -1) {
-		ctx.body = todos[index];
-		todos.splice(index, 1);
-		ctx.status = 200;
-	} else {
-		ctx.status = 404;
-		ctx.body = errorMessage(id);
-	}
+router.del("/:id", (ctx: koa.Context) => {
+	deleteTodo(ctx);
 });
 
 app.use(router.allowedMethods()).use(router.routes()).listen(8080);

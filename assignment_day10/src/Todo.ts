@@ -1,40 +1,24 @@
-const todos: Array<any> = [];
+interface Todo {
+	id: any;
+	title: string;
+	description: string;
+	status: STATUS;
+	createdDate: Date;
+	updatedDate: Date;
+}
+
 enum STATUS {
-	NOT_ACTIVE = "Not active",
+	NOT_ACTIVE = "Not_active",
 	ACTIVE = "Active",
 	COMPLETED = "Completed",
-  IGNORED = "Ignored",
-  UNKNOWN = "Unknown"
+	IGNORED = "Ignored",
 }
-const addTodo = (todoObject: any) => {
-	todos.push(todoObject);
-};
 
-const findTodoByID = (id: any) => {
-	return todos.findIndex((todo) => todo.id === id);
-};
-
-const errorMessage = (id: any) => {
-	return `ID : ${id} - Not Found`;
-};
-
-const findTodoByTitle = (title: any) => {
-	return todos.filter((todo) => todo.title === title);
-};
-
-const updateTodoByID = (index: number, status: string) => {
-	status = status.toUpperCase();
-  status = getStatus(status);
-
-  if (status!== 'Unknown')
-    todos[index].status = status;
-	todos[index].updatedDate = new Date();
-	return todos[index];
-};
+const todos: Array<Todo> = [];
 
 const getStatus = (status: string) => {
+	status = status.toUpperCase();
 	let resultENUM: STATUS;
-	console.log(status);
 	switch (status) {
 		case "ACTIVE": {
 			resultENUM = STATUS.ACTIVE;
@@ -44,26 +28,22 @@ const getStatus = (status: string) => {
 			resultENUM = STATUS.COMPLETED;
 			break;
 		}
-		case "NOT_ACTIVE": {
+		case "NOT ACTIVE": {
 			resultENUM = STATUS.NOT_ACTIVE;
 			break;
 		}
-		case "IGNORED": {
-			resultENUM = STATUS.IGNORED;
-			break;
-		}
 		default:
-			resultENUM = STATUS.UNKNOWN;
+			resultENUM = STATUS.IGNORED;
 	}
 	return resultENUM;
 };
 
-export {
-	todos,
-	STATUS,
-	addTodo,
-	findTodoByTitle,
-	findTodoByID,
-	errorMessage,
-	updateTodoByID,
+const getIndex = (id: string) => {
+	return todos.findIndex((todo) => todo.id === id);
 };
+
+const errorMessage = (id: string) => {
+	return `ID : ${id} - Not Found`;
+};
+
+export { todos, STATUS, getStatus, getIndex, errorMessage };
