@@ -1,9 +1,8 @@
 interface books{
-    bookID: any,
+    bookID: string,
     publisherID: string,
     name: string,
     publishedDate: Date,
-    reviews : Array<object>
 }
 
 const booksList: Array<books> = [];

@@ -4,15 +4,14 @@ import { NotFoundError } from "../customErrors/NotFoundError";
 import { AuthenticationError } from "../customErrors/AuthenticationError";
 
 export const removeBook = (ctx: koa.Context) => {
+	const bookID = ctx.params.bookID;
 	try {
-		const bookIndex = booksList.findIndex(
-			(book) => book.bookID === ctx.params.id
-		);
-		if (bookIndex === -1) throw new NotFoundError(ctx.params.id);
-		if (booksList[bookIndex].publisherID !== ctx.request.body.ownerID)
+		const bookIndex = booksList.findIndex((book) => book.bookID === bookID);
+		if (bookIndex === -1) throw new NotFoundError(bookID);
+		if (booksList[bookIndex].publisherID !== ctx.request.body.userID)
 			throw new AuthenticationError(
 				booksList[bookIndex].bookID,
-				ctx.request.body.ownerID``
+				ctx.request.body.userID
 			);
 
 		ctx.status = 200;

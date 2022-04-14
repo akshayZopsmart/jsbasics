@@ -8,9 +8,10 @@ const getUsers = (ctx: koa.Context) => {
 };
 
 const getUserByID = (ctx: koa.Context) => {
+	const userID = ctx.params.userID;
 	try {
-		const user = getUserID(ctx.params.id);
-		if (!user) throw new NotFoundError(ctx.params.id);
+		const user = getUserID(userID);
+		if (!user) throw new NotFoundError(userID);
 		console.log(ctx.params, user);
 		ctx.status = 200;
 		ctx.body = user;

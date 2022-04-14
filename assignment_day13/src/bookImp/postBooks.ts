@@ -14,7 +14,6 @@ export const addBook = (ctx: koa.Context) => {
 			publisherID: user.userID,
 			name: ctx.request.body.name,
 			publishedDate: new Date(),
-			reviews: [],
 		};
 		booksList.push(bookObject);
 		ctx.status = 201;
