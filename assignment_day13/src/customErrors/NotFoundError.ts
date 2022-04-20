@@ -1,9 +1,8 @@
-import { errorMessage } from "../bookImp/books"
 
 export class NotFoundError extends Error {
     status : number
-    constructor(id: string) {
-        super(errorMessage(id));
+    constructor(value : string) {
+        super(`${value} is not found`);
         this.status = 404;
     }
 }
