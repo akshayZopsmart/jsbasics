@@ -5,7 +5,7 @@ export const createReviewService = (reviewObject: review) => {
 };
 
 export const getReviewForUserService = (userId: string) => {
-	return reviewList.filter((review) => review.userID === userId);
+	return reviewList.filter((review) => review.reviewerID === userId);
 };
 
 export const getReviewByID = (id: string) => {

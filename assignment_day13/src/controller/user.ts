@@ -2,37 +2,39 @@ import koa from "koa";
 import Joi from "joi";
 import { v4 as uuidV4 } from "uuid";
 
-import { usersList } from "../models/user";
 import {
+	getUsersService,
 	getUsersByName,
 	getUserByIDService,
 	getUserByMailService,
 	createUserService,
 	removeUserService,
 	loginUserService,
+	getUserDetailsService,
 } from "../service/user";
 
 import { NotFoundError } from "../customErrors/NotFoundError";
 
-const getUsers = (ctx : koa.Context) => {
-    ctx.status = 200
-    const name = ctx.query.name || ""
-    if (name) {
-        ctx.body = getUsersByName(name.toString());
-    return}
-	ctx.body = usersList;
+const getUsers = (ctx: koa.Context) => {
+	ctx.status = 200;
+	const name = ctx.query.name || "";
+	if (name) {
+		ctx.body = getUsersByName(name.toString());
+		return;
+	}
+	ctx.body = getUsersService();
 };
 
 const getUsersByID = (ctx: koa.Context) => {
-    try {
-        const user = getUserByIDService(ctx.params.userID);
-        if (!user) throw new NotFoundError(ctx.params.userID);
-        ctx.body = user;
-        ctx.status = 200
-    } catch (error: any) {
-        ctx.status = error.status;
-        ctx.body = error.message;
-    }
+	try {
+		const user = getUserByIDService(ctx.params.userID);
+		if (!user) throw new NotFoundError(ctx.params.userID);
+		ctx.body = user;
+		ctx.status = 200;
+	} catch (error: any) {
+		ctx.status = error.status;
+		ctx.body = error.message;
+	}
 };
 
 const getUsersByEmail = (id: string) => {
@@ -61,14 +63,15 @@ const createUser = (ctx: koa.Context) => {
 	};
 
 	createUserService(userObject);
-	ctx.status = 200;
 	ctx.body = userObject;
+	ctx.status = 200;
 };
 
 const removeUser = (ctx: koa.Context) => {
 	try {
-		const user = removeUserService(ctx.params.userID);
-		if (!user) throw new NotFoundError(ctx.params.userID);
+		const userID = ctx.state.userPayload.userID;
+		const user = removeUserService(userID);
+		if (!user) throw new NotFoundError(userID);
 		ctx.status = 200;
 		ctx.body = user;
 	} catch (error: any) {
@@ -97,8 +100,28 @@ const loginUser = (ctx: koa.Context) => {
 	try {
 		let userObject = getUserByMailService(object.email);
 		if (!userObject) throw new NotFoundError(object.email);
-		ctx.body = loginUserService(userObject);
+		const jwt = loginUserService(userObject, object.password);
+		if (jwt === undefined)
+			throw new NotFoundError(`User with email : ${object.email} is not found`);
+		ctx.body = jwt;
 		ctx.status = 202;
+	} catch (error: any) {
+		ctx.status = error.status;
+		ctx.body = error.message;
+	}
+};
+
+const getUsersForFeed = async (ctx: koa.Context) => {
+	try {
+		const usersList = ctx.request.body.userslist;
+		const userSet: Set<string> = new Set();
+		for (const userID of usersList) {
+			userSet.add(userID);
+		}
+		const userDetails = getUserDetailsService(userSet);
+		ctx.status = 200;
+		ctx.body = userDetails;
+		return userDetails;
 	} catch (error: any) {
 		ctx.status = error.status;
 		ctx.body = error.message;
@@ -112,4 +135,5 @@ export {
 	createUser,
 	removeUser,
 	loginUser,
+	getUsersForFeed,
 };

@@ -2,9 +2,9 @@ import koa from "koa";
 import jwt from "jsonwebtoken";
 require('dotenv').config({ path: "../../.env" });
 
-export const verifyToken = (ctx: koa.Context,next : any) => {
+export const verifyToken = (ctx: koa.Context,next : koa.Next) => {
     try {
-        const token = ctx.request.body.token || ctx.request.header['x-access-token']
+        const token = ctx.request.header['x-access-token']?.toString() || ctx.request.body.headers['x-access-token']
         jwt.verify(token, process.env.JWT_SECRET_KEY + "", (err: any, data: any) => {
             if (err) {
                 throw new Error(err.message)
@@ -13,6 +13,7 @@ export const verifyToken = (ctx: koa.Context,next : any) => {
             next();
         });
     } catch (error: any) {
-        ctx.throw(error.status,error.message)
+        ctx.status = 400
+        ctx.body = error.message
     }
 };

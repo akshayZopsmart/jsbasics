@@ -36,7 +36,7 @@ const postBook = (ctx: koa.Context) => {
 		if (!user) throw new NotFoundError(token.userID);
 		let bookObject = {
 			bookID: uuidV4(),
-			publisherID: user.userID,
+			publisherID: token.userID,
 			name: ctx.request.body.name,
 			publishedDate: new Date(),
 			updatedDate: new Date(),
@@ -51,8 +51,11 @@ const postBook = (ctx: koa.Context) => {
 };
 
 const getBooks = (ctx: koa.Context) => {
-	ctx.body = getBooksService();
-	ctx.status = 200;
+	return new Promise((resolve, reject) => {
+		ctx.body = getBooksService();
+		ctx.status = 200;
+		resolve(1);
+	});
 };
 
 const getBookById = (ctx: koa.Context) => {
@@ -76,7 +79,7 @@ const getBookByUser = (ctx: koa.Context) => {
 		const user = getUserByIDService(token.userID);
 		if (!user) throw new NotFoundError(token.userID);
 		ctx.status = 200;
-		ctx.body = getBooksByUserService(user.userID);
+		ctx.body = getBooksByUserService(token.userID);
 	} catch (error: any) {
 		ctx.status = error.status;
 		ctx.body = error.message;
@@ -121,6 +124,7 @@ const updateBook = (ctx: koa.Context) => {
 		ctx.body = error.message;
 	}
 };
+
 
 export {
 	postBook,

@@ -1,7 +1,7 @@
 export interface review {
 	reviewID: string;
 	bookID: string;
-	userID: string;
+	reviewerID: string;
 	review: string;
 }
 

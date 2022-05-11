@@ -1,33 +1,40 @@
-import koa from 'koa';
-import Router from 'koa-router';
-import {getUsers,
-    getUsersByID,
-    createUser,
-    removeUser,
-    loginUser
-} from "../controller/user"
-import { verifyToken } from "../middleware/auth"
-    
+import koa from "koa";
+import Router from "koa-router";
+
+import {
+	getUsers,
+	getUsersByID,
+	createUser,
+	removeUser,
+	loginUser,
+	getUsersForFeed
+} from "../controller/user";
+import { verifyToken } from "../middleware/auth";
+
 export const userRouter = new Router();
 userRouter.prefix("/users");
 userRouter.post("/signup", (ctx: koa.Context) => {
-    createUser(ctx);
+	createUser(ctx);
 });
 
+userRouter.post("/userlist", (ctx: koa.Context) => {
+	return getUsersForFeed(ctx);
+})
+
 userRouter.post("/signin", (ctx: koa.Context) => {
-   loginUser(ctx);
+	loginUser(ctx);
 });
 
 userRouter.get("/", (ctx: koa.Context) => {
-    getUsers(ctx);
+	getUsers(ctx);
 });
 
 userRouter.get("/:userID", (ctx: koa.Context) => {
-    getUsersByID(ctx);
+	getUsersByID(ctx);
 });
 
-
-userRouter.del("/:userID", verifyToken, (ctx: koa.Context) => {
-    removeUser(ctx.state.userPayload)
+userRouter.del("/", verifyToken,(ctx: koa.Context) => {
+	const userID = ctx.state.userPayload.userID;
+	removeUser(ctx);
 });
 
