@@ -1,19 +1,14 @@
 import koa from "koa";
 import Router from "@koa/router";
-import bodyParser from "koa-bodyparser";
-import json from "koa-json";
 import Joi from "joi";
-import logger from "koa-logger";
 import { STATUS } from "./Todo";
 import { getTodos, getTodosById ,getTodosByTitle} from "./readTodo";
 import { updateTodoByID } from "./updateTodo"
 import { addTodo } from "./createTodo";
 import { deleteTodo } from "./deleteTodo";
 
-const app = new koa();
-const router = new Router();
+export const router = new Router();
 
-app.use(json()).use(bodyParser()).use(logger());
 
 router.prefix("/todo");
 
@@ -73,4 +68,3 @@ router.del("/:id", (ctx: koa.Context) => {
 	deleteTodo(ctx);
 });
 
-app.use(router.allowedMethods()).use(router.routes()).listen(8080);
