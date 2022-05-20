@@ -1,28 +1,45 @@
-import { books, booksList } from "../models/book";
-export const postBooksService = (bookObject: books) => {
-	booksList.push(bookObject);
+const db = require("../database/db");
+
+export const postBooksService = async (bookObject: any) => {
+	return await db("books")
+		.insert(bookObject)
+		.then(() => {
+			return bookObject;
+		})
+		.catch((err: any) => {
+			throw new Error(err.message);
+		});
 };
 
-export const getBooksService = () => {
-	return booksList;
+export const getBooksService = async (ctx: any) => {
+	return await db.select().table('books')	
 };
-export const getBooksByUserService = (userID: string) => {
-	return booksList.filter((book) => book.publisherID === userID);
+export const getBooksByUserService = async (userID: string) => {
+	return await db("books")
+		.where({publisherID: userID})
+		.then((book: any) => {
+			return book;
+		})
+		.catch((err: any) => {
+			throw new Error(err.message);
+		})
+}
+
+export const getBookByIDService = async (bookID: string) => {
+	return await db("books")
+		.where({ bookID })
+		.then((book: any) => {
+			return book;
+		})
+		.catch((err: any) => {
+			throw new Error(err.message);
+		});
 };
 
-export const getBooksByIDService = (bookID: string) => {
-	return booksList.find((book) => book.bookID === bookID);
+export const updateBookService = async (bookID : string, name: string) => {
+	return await db("books").where({bookID}).update({name});
 };
 
-export const getBooksIDService = (bookID: string) => {
-	return booksList.findIndex((book) => book.bookID === bookID);
-};
-
-export const updateBookService = (book: books, name: string) => {
-	book.name = name || book.name;
-	book.updatedDate = new Date();
-};
-
-export const deleteBookService = (bookIndex: number) => {
-    booksList.splice(bookIndex, 1);
+export const deleteBookService = async (bookID: string) => {
+	return await db("books").where({ bookID }).del();
 };

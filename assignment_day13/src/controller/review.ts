@@ -2,24 +2,20 @@ import koa from "koa";
 import Joi from "joi";
 import { v4 as uuidV4 } from "uuid";
 
-import { reviewList } from "../models/review";
-import { getUserByIDService } from "../service/user";
 import {
 	createReviewService,
 	deleteReviewService,
 	getReviewForBookService,
-	getReviewByID,
-	getReviewIndex,
 	getReviewForUserService,
 	updateReviewService,
 } from "../service/review";
 
-import { getBooksByIDService } from "../service/book";
+import { getBookByIDService } from "../service/book";
 
 import { NotFoundError } from "../customErrors/NotFoundError";
 import { AuthorizationError } from "../customErrors/AuthorizationError";
 
-const createReview = (ctx: koa.Context) => {
+const createReview = async (ctx: koa.Context) => {
 	const schema = Joi.object({
 		review: Joi.string().required().min(3),
 	});
@@ -31,11 +27,11 @@ const createReview = (ctx: koa.Context) => {
 	}
 	const bookID = ctx.params.bookID;
 	try {
-		const book = getBooksByIDService(bookID);
-		if (!book) throw new NotFoundError(bookID);
+		const book = await getBookByIDService(bookID);
+		if (book.length === 0) throw new NotFoundError(bookID);
+
 		const userID = ctx.state.userPayload.userID;
-		const user = getUserByIDService(userID);
-		if (!user) throw new NotFoundError(userID);
+
 		const reviewObject = {
 			reviewID: uuidV4(),
 			bookID,
@@ -43,20 +39,20 @@ const createReview = (ctx: koa.Context) => {
 			review: ctx.request.body.review,
 		};
 
-		createReviewService(reviewObject);
+		await createReviewService(reviewObject);
 		ctx.status = 201;
 		ctx.body = reviewObject;
 	} catch (error: any) {
-		ctx.status = error.status;
+		ctx.status = 400;
 		ctx.body = error.message;
 	}
 };
 
-const getReviewForBook = (ctx: koa.Context) => {
+const getReviewForBook = async (ctx: koa.Context) => {
 	try {
 		const id = ctx.params.bookID;
-		const reviews = getReviewForBookService(id);
-		if (reviews.length ===  0) throw new NotFoundError(id);
+		const reviews = await getReviewForBookService(id);
+		if (reviews.length === 0) throw new NotFoundError(id);
 		ctx.status = 200;
 		ctx.body = reviews;
 	} catch (error: any) {
@@ -65,11 +61,11 @@ const getReviewForBook = (ctx: koa.Context) => {
 	}
 };
 
-const getReviewForUser = (ctx: koa.Context) => {
+const getReviewForUser = async (ctx: koa.Context) => {
 	try {
 		const id = ctx.state.userPayload.userID;
-		const reviews = getReviewForUserService(id);
-		if (!reviews) throw new NotFoundError(id);
+		const reviews = await getReviewForUserService(id);
+		if (reviews.length === 0) throw new NotFoundError(id);
 		ctx.status = 200;
 		ctx.body = reviews;
 	} catch (error: any) {
@@ -78,27 +74,20 @@ const getReviewForUser = (ctx: koa.Context) => {
 	}
 };
 
-const deleteReview = (ctx: koa.Context) => {
+const deleteReview = async (ctx: koa.Context) => {
 	try {
 		const reviewID = ctx.params.reviewID;
-		const reviewIndex = getReviewIndex(reviewID);
-		if (reviewIndex === -1) throw new NotFoundError(reviewID);
-		const book = getBooksByIDService(reviewList[reviewIndex].bookID);
-		if (!book) throw new NotFoundError(reviewList[reviewIndex].bookID);
-		if (reviewList[reviewIndex].reviewerID !== book.publisherID)
-			throw new AuthorizationError(
-				`${book.publisherID} is not authorized with ${reviewID}`
-			);
+		const record = await deleteReviewService(reviewID);
+		if (record === 0) throw new NotFoundError(reviewID);
+		ctx.body = `${record} records deleted successfully`;
 		ctx.status = 200;
-		ctx.body = reviewList[reviewIndex];
-		deleteReviewService(reviewIndex);
 	} catch (error: any) {
-		ctx.status = error.status;
+		ctx.status = 400;
 		ctx.body = error.message;
 	}
 };
 
-const updateReview = (ctx: koa.Context) => {
+const updateReview = async (ctx: koa.Context) => {
 	const schema = Joi.object({
 		review: Joi.string().min(3).required(),
 	});
@@ -109,30 +98,23 @@ const updateReview = (ctx: koa.Context) => {
 		return;
 	}
 	try {
-		const id = ctx.params.reviewID;
-		const review = getReviewByID(id);
-		if (!review) throw new NotFoundError(id);
-		const book = getBooksByIDService(review.bookID);
-		if (!book) throw new NotFoundError(review.bookID);
-		if (review.reviewerID !== book.publisherID)
-			throw new AuthorizationError(
-				`${book.publisherID} is not authorized with ${review.reviewID}`
-			);
-		updateReviewService(review, ctx.request.body.review);
+		const reviewID = ctx.params.reviewID;
+		const record = await updateReviewService(reviewID, ctx.request.body.review);
+		if (record === 0) throw new NotFoundError(reviewID);
+		ctx.body = `${record} records updated successfully`;
 		ctx.status = 200;
-		ctx.body = review;
 	} catch (error: any) {
 		ctx.status = error.status;
 		ctx.body = error.message;
 	}
 };
 
-const getReviewForFeed = (ctx: koa.Context) => {
+const getReviewForFeed = async (ctx: koa.Context) => {
 	try {
 		const reviewArray: any[] = [];
 		const bookIDs = ctx.request.body.bookIDlist;
 		for (const bookID of bookIDs) {
-			const reviews = getReviewForBookService(bookID);
+			const reviews = await getReviewForBookService(bookID);
 			if (reviews.length > 2) reviews.length = 2;
 			reviewArray.push(
 				{ [bookID]: reviews }

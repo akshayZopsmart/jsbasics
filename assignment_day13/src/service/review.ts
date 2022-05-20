@@ -1,28 +1,51 @@
 import { review, reviewList } from "../models/review";
+const db = require("../database/db");
 
-export const createReviewService = (reviewObject: review) => {
-	reviewList.push(reviewObject);
+export const createReviewService = async (reviewObject: review) => {
+	return await db("reviews")
+		.insert(reviewObject)
+		.catch((err: any) => {
+			throw new Error(err.message);
+		});
 };
 
-export const getReviewForUserService = (userId: string) => {
-	return reviewList.filter((review) => review.reviewerID === userId);
+export const getReviewForUserService = async (userID: string) => {
+	return await db("reviews")
+		.where({ reviewerID: userID })
+		.then((review: any) => {
+			return review;
+		})
+		.catch((error: any) => {
+			throw new Error(error.message);
+		});
 };
 
-export const getReviewByID = (id: string) => {
-    return reviewList.find((review) => review.reviewID === id);
-}
-
-export const getReviewIndex = (id: string) => {
-    return reviewList.findIndex((review) => review.reviewID === id);
-}
-export const getReviewForBookService = (bookID: string) => {
-	return reviewList.filter((review) => review.bookID === bookID);
+export const getReviewByID = async (reviewID: string) => {
+	return await db("reviews")
+		.where({ reviewID })
+		.then((review: any) => {
+			return review[0];
+		})
+		.catch((error: any) => {
+			throw new Error(error.message);
+		});
 };
 
-export const updateReviewService = (reviewObject: review, review: string) => {
-	reviewObject.review = review;
+export const getReviewForBookService = async (bookID: string) => {
+	return await db("reviews")
+		.where({ bookID })
+		.then((review: any) => {
+			return review;
+		})
+		.catch((error: any) => {
+			throw new Error(error.message);
+		});
 };
 
-export const deleteReviewService = (index: number) => {
-	reviewList.splice(index, 1);
+export const updateReviewService = async (reviewID: string, review: string) => {
+	return await db("reviews").where({ reviewID }).update({ review });
+};
+
+export const deleteReviewService = async (reviewID: string) => {
+	return await db("reviews").where({ reviewID }).del();
 };

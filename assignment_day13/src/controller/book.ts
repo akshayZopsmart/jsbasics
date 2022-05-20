@@ -1,25 +1,17 @@
 import koa from "koa";
 import Joi from "joi";
 import { v4 as uuidV4 } from "uuid";
-
-import { booksList } from "../models/book";
+import { NotFoundError } from "../customErrors/NotFoundError";
 import {
 	postBooksService,
 	getBooksService,
-	getBooksByIDService,
-	getBooksIDService,
+	getBookByIDService,
 	getBooksByUserService,
 	deleteBookService,
 	updateBookService,
 } from "../service/book";
 
-import { getUserByIDService } from "../service/user";
-
-import { NotFoundError } from "../customErrors/NotFoundError";
-import { TokenError } from "../customErrors/TokenError";
-import { AuthorizationError } from "../customErrors/AuthorizationError";
-
-const postBook = (ctx: koa.Context) => {
+const postBook = async (ctx: koa.Context) => {
 	const schema = Joi.object({
 		name: Joi.string().required().min(3),
 	});
@@ -30,40 +22,13 @@ const postBook = (ctx: koa.Context) => {
 		return;
 	}
 	try {
-		const token = ctx.state.userPayload;
-		if (!token) throw new TokenError();
-		const user = getUserByIDService(token.userID);
-		if (!user) throw new NotFoundError(token.userID);
+		const token = await ctx.state.userPayload;
 		let bookObject = {
 			bookID: uuidV4(),
 			publisherID: token.userID,
 			name: ctx.request.body.name,
-			publishedDate: new Date(),
-			updatedDate: new Date(),
 		};
-		postBooksService(bookObject);
-		ctx.status = 201;
-		ctx.body = bookObject;
-	} catch (error: any) {
-		ctx.status = error.status;
-		ctx.body = error.message;
-	}
-};
-
-const getBooks = (ctx: koa.Context) => {
-	return new Promise((resolve, reject) => {
-		ctx.body = getBooksService();
-		ctx.status = 200;
-		resolve(1);
-	});
-};
-
-const getBookById = (ctx: koa.Context) => {
-	try {
-		const bookID = ctx.params.bookID;
-
-		const book = getBooksByIDService(bookID);
-		if (!book) throw new NotFoundError(bookID);
+		const book = await postBooksService(bookObject);
 		ctx.status = 200;
 		ctx.body = book;
 	} catch (error: any) {
@@ -72,59 +37,67 @@ const getBookById = (ctx: koa.Context) => {
 	}
 };
 
-const getBookByUser = (ctx: koa.Context) => {
+const getBooks = async (ctx: koa.Context) => {
 	try {
-		const token = ctx.state.userPayload;
-		if (!token) throw new TokenError();
-		const user = getUserByIDService(token.userID);
-		if (!user) throw new NotFoundError(token.userID);
+		const books = await getBooksService(ctx);
+		ctx.body = books;
 		ctx.status = 200;
-		ctx.body = getBooksByUserService(token.userID);
 	} catch (error: any) {
-		ctx.status = error.status;
 		ctx.body = error.message;
+		ctx.status = 400;
 	}
 };
 
-const deleteBook = (ctx: koa.Context) => {
+const getBookById = async (ctx: koa.Context) => {
 	try {
-		const token = ctx.state.userPayload;
-		if (!token) throw new TokenError();
-
 		const bookID = ctx.params.bookID;
-		const bookIndex = getBooksIDService(bookID);
-		if (bookIndex === -1) throw new NotFoundError(bookID);
-		if (booksList[bookIndex].publisherID !== token.userID)
-			throw new AuthorizationError(
-				`${token.userID} is not authorized with ${booksList[bookIndex].bookID}`
-			);
-
-		ctx.status = 200;
-		ctx.body = booksList[bookIndex];
-		deleteBookService(bookIndex);
-	} catch (error: any) {
-		ctx.status = error.status;
-		ctx.body = error.message;
-	}
-};
-
-const updateBook = (ctx: koa.Context) => {
-	try {
-		const token = ctx.state.userPayload;
-		if (!token) throw new TokenError();
-		const book = getBooksByIDService(ctx.params.bookID);
-		if (!book) throw new NotFoundError(token.userID);
-		if (book.publisherID !== token.userID)
-			throw new AuthorizationError(`${token.userID} is not authorized with ${book.bookID}`);
-		updateBookService(book, ctx.request.body.name);
+		const book = await getBookByIDService(bookID);
 		ctx.status = 200;
 		ctx.body = book;
 	} catch (error: any) {
-		ctx.status = error.status;
+		ctx.status = 400;
 		ctx.body = error.message;
 	}
 };
 
+const getBookByUser = async (ctx: koa.Context) => {
+	try {
+		const books = await getBooksByUserService(ctx.params.userID);
+		ctx.body = books;
+		ctx.status = 200;
+	} catch (error: any) {
+		ctx.status = 400;
+		ctx.body = error.message;
+	}
+};
+
+const deleteBook = async (ctx: koa.Context) => {
+	try {
+		const bookID = ctx.params.bookID;
+		const record = await deleteBookService(bookID);
+		if (record.length === 0) throw new NotFoundError(bookID);
+		ctx.status = 200;
+		ctx.body = `Book with ID : ${bookID} is deleted successfully`;
+	} catch (error: any) {
+		ctx.status = error.status | 400;
+		ctx.body = error.message;
+	}
+};
+
+const updateBook = async (ctx: koa.Context) => {
+	try {
+		const record = await updateBookService(
+			ctx.params.bookID,
+			ctx.request.body.name
+		);
+		if (record === 0) throw new NotFoundError(ctx.params.bookID);
+		ctx.body = `Book with id : ${ctx.params.bookID} updated successfully`;
+		ctx.status = 200;
+	} catch (error: any) {
+		ctx.status = error.status;
+		ctx.body = error.message;
+	}
+};
 
 export {
 	postBook,

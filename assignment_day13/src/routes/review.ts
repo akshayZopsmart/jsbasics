@@ -1,4 +1,3 @@
-import koa from "koa";
 import Router from "koa-router";
 import {
 	createReview,
@@ -11,28 +10,17 @@ import {
 
 import { verifyToken } from "../middleware/auth";
 export const reviewRouter = new Router();
+
 reviewRouter.prefix("/review");
 
-reviewRouter.post("/reviewlist", verifyToken, (ctx: koa.Context) => {
-	return getReviewForFeed(ctx);
-});
+reviewRouter.post("/reviewlist", verifyToken, getReviewForFeed);
 
-reviewRouter.post("/:bookID", verifyToken, (ctx: koa.Context) => {
-	createReview(ctx);
-});
+reviewRouter.post("/:bookID", verifyToken, createReview);
 
-reviewRouter.get("/user", verifyToken, (ctx: koa.Context) => {
-	getReviewForUser(ctx);
-});
+reviewRouter.get("/user", verifyToken, getReviewForUser);
 
-reviewRouter.get("/:bookID", verifyToken, (ctx: koa.Context) => {
-	getReviewForBook(ctx);
-});
+reviewRouter.get("/:bookID", verifyToken, getReviewForBook);
 
-reviewRouter.del("/:reviewID", verifyToken, (ctx: koa.Context) => {
-	deleteReview(ctx);
-});
+reviewRouter.del("/:reviewID", verifyToken, deleteReview);
 
-reviewRouter.put("/:reviewID", verifyToken, (ctx: koa.Context) => {
-	updateReview(ctx);
-});
+reviewRouter.put("/:reviewID", verifyToken, updateReview);

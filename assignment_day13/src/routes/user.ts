@@ -1,4 +1,3 @@
-import koa from "koa";
 import Router from "koa-router";
 
 import {
@@ -7,34 +6,21 @@ import {
 	createUser,
 	removeUser,
 	loginUser,
-	getUsersForFeed
+	getUsersForFeed,
 } from "../controller/user";
-import { verifyToken } from "../middleware/auth";
 
 export const userRouter = new Router();
+
 userRouter.prefix("/users");
-userRouter.post("/signup", (ctx: koa.Context) => {
-	createUser(ctx);
-});
 
-userRouter.post("/userlist", (ctx: koa.Context) => {
-	return getUsersForFeed(ctx);
-})
+userRouter.post("/signup", createUser);
 
-userRouter.post("/signin", (ctx: koa.Context) => {
-	loginUser(ctx);
-});
+userRouter.post("/userlist", getUsersForFeed);
 
-userRouter.get("/", (ctx: koa.Context) => {
-	getUsers(ctx);
-});
+userRouter.post("/signin", loginUser);
 
-userRouter.get("/:userID", (ctx: koa.Context) => {
-	getUsersByID(ctx);
-});
+userRouter.get("/", getUsers);
 
-userRouter.del("/", verifyToken,(ctx: koa.Context) => {
-	const userID = ctx.state.userPayload.userID;
-	removeUser(ctx);
-});
+userRouter.get("/:userID", getUsersByID);
 
+userRouter.del("/:userID", removeUser);

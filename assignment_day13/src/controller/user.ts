@@ -15,19 +15,19 @@ import {
 
 import { NotFoundError } from "../customErrors/NotFoundError";
 
-const getUsers = (ctx: koa.Context) => {
+const getUsers = async (ctx: koa.Context) => {
 	ctx.status = 200;
 	const name = ctx.query.name || "";
 	if (name) {
-		ctx.body = getUsersByName(name.toString());
+		ctx.body = await getUsersByName(name.toString());
 		return;
 	}
-	ctx.body = getUsersService();
+	ctx.body = await getUsersService();
 };
 
-const getUsersByID = (ctx: koa.Context) => {
+const getUsersByID = async (ctx: koa.Context) => {
 	try {
-		const user = getUserByIDService(ctx.params.userID);
+		const user = await getUserByIDService(ctx.params.userID);
 		if (!user) throw new NotFoundError(ctx.params.userID);
 		ctx.body = user;
 		ctx.status = 200;
@@ -41,7 +41,7 @@ const getUsersByEmail = (id: string) => {
 	return getUserByMailService(id);
 };
 
-const createUser = (ctx: koa.Context) => {
+const createUser = async (ctx: koa.Context) => {
 	const schema = Joi.object({
 		name: Joi.string().min(3).required(),
 		email: Joi.string().min(4).required(),
@@ -61,26 +61,29 @@ const createUser = (ctx: koa.Context) => {
 		email: ctx.request.body.email,
 		password: ctx.request.body.password,
 	};
-
-	createUserService(userObject);
-	ctx.body = userObject;
-	ctx.status = 200;
+	try {
+		ctx.body = await createUserService(userObject);
+		ctx.status = 201;
+	} catch (error: any) {
+		ctx.status = 400;
+		ctx.body = error.message;
+	}
 };
 
-const removeUser = (ctx: koa.Context) => {
+const removeUser = async (ctx: koa.Context) => {
 	try {
-		const userID = ctx.state.userPayload.userID;
-		const user = removeUserService(userID);
-		if (!user) throw new NotFoundError(userID);
+		const userID = ctx.params.userID;
+		const records = await removeUserService(userID);
+		if (records === 0) throw new NotFoundError(userID);
 		ctx.status = 200;
-		ctx.body = user;
+		ctx.body = `columns affected are ${records}`;
 	} catch (error: any) {
 		ctx.status = error.status;
 		ctx.body = error.message;
 	}
 };
 
-const loginUser = (ctx: koa.Context) => {
+const loginUser = async (ctx: koa.Context) => {
 	const schema = Joi.object({
 		email: Joi.string().min(4).required(),
 		password: Joi.string().required(),
@@ -98,9 +101,9 @@ const loginUser = (ctx: koa.Context) => {
 		password: ctx.request.body.password,
 	};
 	try {
-		let userObject = getUserByMailService(object.email);
+		let userObject = await getUserByMailService(object.email);
 		if (!userObject) throw new NotFoundError(object.email);
-		const jwt = loginUserService(userObject, object.password);
+		const jwt = loginUserService(userObject[0], object.password);
 		if (jwt === undefined)
 			throw new NotFoundError(`User with email : ${object.email} is not found`);
 		ctx.body = jwt;
@@ -118,7 +121,8 @@ const getUsersForFeed = async (ctx: koa.Context) => {
 		for (const userID of usersList) {
 			userSet.add(userID);
 		}
-		const userDetails = getUserDetailsService(userSet);
+		const userDetails = await getUserDetailsService(userSet);
+		console.log('userdetails ' , userDetails)
 		ctx.status = 200;
 		ctx.body = userDetails;
 		return userDetails;

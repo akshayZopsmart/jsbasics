@@ -1,4 +1,3 @@
-import koa from "koa";
 import Router from "koa-router";
 import {
 	postBook,
@@ -13,26 +12,14 @@ import { verifyToken } from "../middleware/auth";
 export const bookRouter = new Router();
 bookRouter.prefix("/books");
 
-bookRouter.post("/", verifyToken, (ctx: koa.Context) => {
-    postBook(ctx);
-});
+bookRouter.post("/", verifyToken, postBook);
 
-bookRouter.get("/", verifyToken, (ctx: koa.Context) => {
-	getBooks(ctx);
-});
+bookRouter.get("/", verifyToken, getBooks);
 
-bookRouter.get("/user", verifyToken, (ctx: koa.Context) => {
-    getBookByUser(ctx);
-});
+bookRouter.get("/user/:userID", verifyToken, getBookByUser);
 
-bookRouter.get("/:bookID", verifyToken, (ctx: koa.Context) => {
-	getBookById(ctx);
-});
+bookRouter.get("/:bookID", verifyToken, getBookById);
 
-bookRouter.put("/:bookID", verifyToken, (ctx: koa.Context) => {
-	updateBook(ctx);
-});
+bookRouter.put("/:bookID", verifyToken, updateBook);
 
-bookRouter.del("/:bookID", verifyToken, (ctx: koa.Context) => {
-	deleteBook(ctx);
-});
+bookRouter.del("/:bookID", verifyToken, deleteBook);
