@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>flamebearer</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<style>
+    html, body { height: 100%; }
+    body { font: 16px "Helvetica Neue", sans-serif; margin: 0; }
+    body.hover { background: #cfc; }
+    h1 { font-size: 30px; margin: 30px 30px 15px; }
+    h1 a { color: black; text-decoration: none; }
+    h1 a:hover { text-decoration: underline; }
+    #fire-icon { fill: #f53; width: 26px; height: 26px; vertical-align: -1px; }
+    #intro { margin: 0 30px; }
+    code { font-size: 13px; color: #444; }
+    code span { color: #aaa; }
+    #canvas { width: 100%; }
+    #controls { display: none; }
+    #search { margin-right: 10px; }
+    #highlight { position: absolute; pointer-events: none; background: #ffffff40; }
+    .loaded #intro { display: none; }
+    .loaded #header { display: flex; align-items: center; flex-flow: row wrap; padding: 7px 10px; }
+    .loaded h1 { font-size: 22px; margin: 0 auto 0 0; flex-shrink: 0; }
+    .loaded #fire-icon { width: 20px; height: 20px; }
+    .loaded #controls { display: block; flex-shrink: 0; }
+    #tooltip { position: absolute; pointer-events: none; background: #ffffff; white-space: nowrap; box-shadow: 1px 2px 4px 0px rgba(0,0,0,0.3); border-radius: 2px; padding: 3px 5px; font: 12px Tahoma, sans-serif; display: none; }
+    #tooltip .path { color: #888; font-size: 11px; }
+    #tooltip .time { color: #4a4; }
+</style>
+</head>
+<body>
+
+<div id="header">
+    <h1><svg id="fire-icon" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 15 15" style="enable-background:new 0 0 15 15;" xml:space="preserve"><path d="M7.5,0.5L5,4.5l-1.5-2 C2.9452,3.4753,0.8036,5.7924,0.8036,8.3036C0.8036,12.002,3.8017,15,7.5,15s6.6964-2.998,6.6964-6.6964 c0-2.5112-2.1416-4.8283-2.6964-5.8036l-1.5,2L7.5,0.5z M7.5,7c0,0,2.5,2.5618,2.5,4.5c0,0.8371-0.8259,2-2.5,2S5,12.3371,5,11.5 C5,9.6283,7.5,7,7.5,7z"/></svg> <a href="https://github.com/mapbox/flamebearer">flamebearer</a></h1>
+    <div id="controls">
+        <input id="search" placeholder="Search..." />
+        <button id="reset">Reset view</button>
+    </div>
+</div>
+<div id="highlight"></div>
+<div id="tooltip"></div>
+<div id="intro"><!--  --></div>
+<canvas id="canvas" height="0"></canvas>
+
+<!--  -->
+<script>'use strict';
+
+const introEl = document.getElementById('intro');
+const searchEl = document.getElementById('search');
+const highlightEl = document.getElementById('highlight');
+const tooltipEl = document.getElementById('tooltip');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+let names, levels, numTicks;
+
+names = ["(unknown)","~(anonymous) internal/bootstrap/loaders.js:1:1","~<static_fields_initializer> internal/bootstrap/loaders.js:169:3","~(anonymous) internal/per_context/primordials.js:23:10","(lib) /home/raramuri/.nvm/versions/node/v14.17.0/bin/node","(unknown)","~(anonymous) internal/bootstrap/node.js:1:1","~setupPrepareStackTrace internal/bootstrap/node.js:252:32","~nativeModuleRequire internal/bootstrap/loaders.js:303:29","~compileForInternalLoader internal/bootstrap/loaders.js:270:27","~(anonymous) internal/errors.js:1:1","~E internal/errors.js:328:11","~makeNodeErrorWithCode internal/errors.js:255:31","~setupProcessObject internal/bootstrap/node.js:271:28","~(anonymous) events.js:1:1","~(anonymous) internal/util/inspect.js:1:1","~(anonymous) internal/url.js:1:1","~(anonymous) path.js:1:1","~exposeInterface internal/bootstrap/node.js:345:25","~(anonymous) internal/main/run_main_module.js:1:1","~(anonymous) internal/bootstrap/pre_execution.js:1:1","~(anonymous) internal/options.js:1:1","~prepareMainThreadExecution internal/bootstrap/pre_execution.js:20:36","~initializeCJSLoader internal/bootstrap/pre_execution.js:425:29","~(anonymous) internal/modules/cjs/loader.js:1:1","~(anonymous) internal/source_map/source_map_cache.js:1:1","~(anonymous) fs.js:1:1","~(anonymous) internal/fs/utils.js:1:1","~(anonymous) internal/process/esm_loader.js:1:1","~(anonymous) internal/modules/esm/loader.js:1:1","~executeUserEntryPoint internal/modules/run_main.js:65:31","~Module._load internal/modules/cjs/loader.js:709:24","~Module.load internal/modules/cjs/loader.js:921:33","~Module._extensions..js internal/modules/cjs/loader.js:1077:37","~Module._compile internal/modules/cjs/loader.js:1022:37","~(anonymous) ./JS Tuts/jsbasics/server.js:1:1","~require internal/modules/cjs/helpers.js:87:31","~Module.require internal/modules/cjs/loader.js:949:36","~Module._resolveFilename internal/modules/cjs/loader.js:801:35","~Module._findPath internal/modules/cjs/loader.js:449:28","(C++) __write","~resolveExports internal/modules/cjs/loader.js:427:24","~pathToFileURL internal/url.js:1388:23","~set internal/url.js:619:8","~packageExportsResolve internal/modules/esm/resolve.js:467:31","~resolvePackageTarget internal/modules/esm/resolve.js:371:30","~isArrayIndex internal/modules/esm/resolve.js:365:22","~finalizeEsmResolution internal/modules/cjs/loader.js:891:31","~tryFile internal/modules/cjs/loader.js:339:17","~toRealPath internal/modules/cjs/loader.js:348:20","~realpathSync fs.js:1718:22","~(anonymous) ./JS Tuts/jsbasics/node_modules/koa/lib/application.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/is-generator-function/index.js:1:1","~resolvePackageTargetString internal/modules/esm/resolve.js:317:36","~URL internal/url.js:327:14","~(anonymous) ./JS Tuts/jsbasics/node_modules/has-tostringtag/shams.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/has-symbols/shams.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/debug/src/index.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/debug/src/node.js:1:1","~loadNativeModule internal/modules/cjs/helpers.js:31:26","~compileForPublicLoader internal/bootstrap/loaders.js:219:25","~(anonymous) tty.js:1:1","~(anonymous) net.js:1:1","~(anonymous) internal/stream_base_commons.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/supports-color/index.js:1:1","~(anonymous) os.js:1:1","(lib) /usr/lib/x86_64-linux-gnu/libc-2.31.so","~getStdout internal/bootstrap/switches/is_main_thread.js:120:19","~createWritableStdioStream internal/bootstrap/switches/is_main_thread.js:41:35","~WriteStream tty.js:85:21","~Socket net.js:268:16","~Duplex internal/streams/duplex.js:52:16","~Readable internal/streams/readable.js:187:18","~ReadableState internal/streams/readable.js:90:23","~tryExtensions internal/modules/cjs/loader.js:355:23","~isFileType fs.js:199:20","~setup ./JS Tuts/jsbasics/node_modules/debug/src/common.js:7:15","~(anonymous) ./JS Tuts/jsbasics/node_modules/koa/lib/response.js:1:1","~readFileSync fs.js:391:22","~getOptions internal/fs/utils.js:285:20","~Module._nodeModulePaths internal/modules/cjs/loader.js:580:37","~resolve path.js:1032:10","~normalizeString path.js:52:25","~(anonymous) ./JS Tuts/jsbasics/node_modules/cache-content-type/index.js:1:1","~openSync fs.js:489:18","~hidden internal/errors.js:286:25","~(anonymous) internal/fs/utils.js:636:42","~(anonymous) ./JS Tuts/jsbasics/node_modules/mime-types/index.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/mime-db/index.js:1:1","~Module._extensions..json internal/modules/cjs/loader.js:1102:39","~populateMaps ./JS Tuts/jsbasics/node_modules/mime-types/index.js:154:23","~forEachMimeType ./JS Tuts/jsbasics/node_modules/mime-types/index.js:158:52","~(anonymous) ./JS Tuts/jsbasics/node_modules/escape-html/index.js:1:1","~closeSync fs.js:456:19","~(anonymous) internal/validators.js:88:3","~(anonymous) ./JS Tuts/jsbasics/node_modules/statuses/index.js:1:1","~populateStatusesMap ./JS Tuts/jsbasics/node_modules/statuses/index.js:60:30","~forEachCode ./JS Tuts/jsbasics/node_modules/statuses/index.js:63:51","~(anonymous) ./JS Tuts/jsbasics/node_modules/destroy/index.js:1:1","~(anonymous) zlib.js:1:1","~(anonymous) zlib.js:776:62","~tryPackage internal/modules/cjs/loader.js:293:20","~Module._resolveLookupPaths internal/modules/cjs/loader.js:615:38","~toString buffer.js:776:46","~getEncodingOps buffer.js:679:24","~(anonymous) ./JS Tuts/jsbasics/node_modules/koa/lib/context.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/http-errors/index.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/http-errors/node_modules/depd/index.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/http-errors/node_modules/depd/lib/compat/index.js:1:1","~syncExports internal/bootstrap/loaders.js:258:14","~populateConstructorExports ./JS Tuts/jsbasics/node_modules/http-errors/index.js:264:37","~forEachCode ./JS Tuts/jsbasics/node_modules/http-errors/index.js:265:38","~toIdentifier ./JS Tuts/jsbasics/node_modules/toidentifier/index.js:24:23","~createClientErrorConstructor ./JS Tuts/jsbasics/node_modules/http-errors/index.js:133:39","~inherits util.js:152:18","~(anonymous) ./JS Tuts/jsbasics/node_modules/http-assert/index.js:1:1","~readPackage internal/modules/cjs/loader.js:245:21","~(anonymous) ./JS Tuts/jsbasics/node_modules/cookies/index.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/keygrip/index.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/tsscmp/lib/index.js:1:1","~(anonymous) crypto.js:1:1","~(anonymous) internal/crypto/pbkdf2.js:1:1","~(anonymous) internal/crypto/util.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/koa/lib/request.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/accepts/index.js:1:1","~tryCreateBuffer fs.js:364:25","~allocUnsafe buffer.js:385:42","~allocate buffer.js:410:18","~FastBuffer internal/buffer.js:951:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/negotiator/index.js:1:1","~(anonymous) internal/fs/utils.js:624:38","~(anonymous) internal/fs/utils.js:325:35","~(anonymous) ./JS Tuts/jsbasics/node_modules/koa-convert/index.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/koa-router/lib/router.js:1:1","~createPool buffer.js:158:20","~(anonymous) ./JS Tuts/jsbasics/node_modules/koa-body/index.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/co-body/index.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/co-body/lib/any.js:1:1","~findLongestRegisteredExtension internal/modules/cjs/loader.js:368:40","~(anonymous) ./JS Tuts/jsbasics/node_modules/co-body/lib/json.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/raw-body/index.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/raw-body/node_modules/http-errors/index.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/raw-body/node_modules/statuses/index.js:1:1","~populateConstructorExports ./JS Tuts/jsbasics/node_modules/raw-body/node_modules/http-errors/index.js:258:37","~forEachCode ./JS Tuts/jsbasics/node_modules/raw-body/node_modules/http-errors/index.js:259:38","~createClientErrorConstructor ./JS Tuts/jsbasics/node_modules/raw-body/node_modules/http-errors/index.js:127:39","~read internal/modules/package_json_reader.js:16:14","~(anonymous) ./JS Tuts/jsbasics/node_modules/inflation/index.js:1:1","~getOwn internal/bootstrap/loaders.js:153:16","~(anonymous) ./JS Tuts/jsbasics/node_modules/co-body/lib/form.js:1:1","~trySelf internal/modules/cjs/loader.js:396:17","~readPackageScope internal/modules/cjs/loader.js:276:26","normalizeString path.js:52:25","~(anonymous) ./JS Tuts/jsbasics/node_modules/qs/lib/index.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/qs/lib/stringify.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/side-channel/index.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/get-intrinsic/index.js:1:1","~encodePathChars internal/url.js:1373:25","~(anonymous) ./JS Tuts/jsbasics/node_modules/call-bind/callBound.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/call-bind/index.js:1:1","~GetIntrinsic ./JS Tuts/jsbasics/node_modules/get-intrinsic/index.js:252:39","~stringToPath ./JS Tuts/jsbasics/node_modules/get-intrinsic/index.js:209:41","~(anonymous) ./JS Tuts/jsbasics/node_modules/formidable/src/index.js:1:1","~stat internal/modules/cjs/loader.js:133:14","~(anonymous) ./JS Tuts/jsbasics/node_modules/formidable/src/Formidable.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/once/once.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/formidable/node_modules/qs/lib/index.js:1:1","~toPathIfFileURL internal/url.js:1427:25","~isURLInstance internal/url.js:1423:23","~(anonymous) ./JS Tuts/jsbasics/node_modules/formidable/src/plugins/index.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/formidable/src/plugins/octetstream.js:1:1","~tryReadSync fs.js:379:21","~(anonymous) ./JS Tuts/jsbasics/node_modules/koa-logger/index.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/koa-logger/node_modules/chalk/index.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/koa-logger/node_modules/ansi-styles/index.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/koa-logger/node_modules/color-convert/index.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/koa-logger/node_modules/color-convert/conversions.js:1:1","~(anonymous) ./JS Tuts/jsbasics/node_modules/koa-logger/node_modules/color-convert/index.js:61:25","~module.exports ./JS Tuts/jsbasics/node_modules/koa-logger/node_modules/color-convert/route.js:78:27","~wrapConversion ./JS Tuts/jsbasics/node_modules/koa-logger/node_modules/color-convert/route.js:63:24","~(anonymous) ./JS Tuts/jsbasics/node_modules/koa-logger/node_modules/color-convert/index.js:70:31","~assembleStyles ./JS Tuts/jsbasics/node_modules/koa-logger/node_modules/ansi-styles/index.js:19:24","(lib) /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.28","~(anonymous) child_process.js:1:1","~(anonymous) internal/child_process.js:1:1","~(anonymous) internal/socket_list.js:1:1","~Router.<computed> ./JS Tuts/jsbasics/node_modules/koa-router/lib/router.js:191:40","~Router.register ./JS Tuts/jsbasics/node_modules/koa-router/lib/router.js:553:38","~Layer ./JS Tuts/jsbasics/node_modules/koa-router/lib/layer.js:20:15","~pathToRegexp ./JS Tuts/jsbasics/node_modules/path-to-regexp/dist/index.js:402:22","~stringToRegexp ./JS Tuts/jsbasics/node_modules/path-to-regexp/dist/index.js:328:24","~parse ./JS Tuts/jsbasics/node_modules/path-to-regexp/dist/index.js:96:15","~escapeString ./JS Tuts/jsbasics/node_modules/path-to-regexp/dist/index.js:287:22","(C++) __libc_malloc","~listen ./JS Tuts/jsbasics/node_modules/koa/lib/application.js:79:9","~createServer http.js:56:22","~Server.listen net.js:1398:35","~once events.js:495:44","~addListener events.js:466:58","~_addListener events.js:404:22","~processTicksAndRejections internal/process/task_queues.js:67:35","~emitListeningNT net.js:1349:25","~emit events.js:325:44","~onceWrapper events.js:477:21","~(anonymous) ./JS Tuts/jsbasics/server.js:65:19","~log internal/console/constructor.js:357:6","~value internal/console/constructor.js:258:20","~Writable.write internal/streams/writable.js:258:36","~writeOrBuffer internal/streams/writable.js:334:23","~Socket._write net.js:796:35","~Socket._writeGeneric net.js:759:42","~writeGeneric internal/stream_base_commons.js:143:22","~afterWriteDispatched internal/stream_base_commons.js:151:30","~onwrite internal/streams/writable.js:394:17"];
+levels = [[0,1,0,0,106,5],[0,1,1,0,5,6,0,100,19,0,1,200],[0,1,2,0,1,7,0,2,8,0,1,13,0,1,18,0,1,8,0,4,22,0,95,30,0,1,201],[0,1,3,0,1,8,0,1,4,0,1,9,0,1,8,0,1,4,0,1,9,0,4,23,0,95,31,0,1,202],[0,1,4,0,1,9,0,1,4,0,1,16,0,1,9,0,1,4,0,1,20,0,4,8,0,95,32,0,1,203],[1,1,10,1,1,8,0,1,14,1,1,8,0,4,9,0,95,33,0,1,204],[1,1,11,1,1,9,0,1,8,1,1,9,0,4,24,0,95,34,0,1,4],[1,1,12,1,1,17,0,1,9,1,1,21,0,1,4,0,3,8,0,95,35,0,1,205],[1,1,4,1,1,4,0,1,15,1,1,4,0,1,4,0,3,9,0,91,36,0,1,186,0,3,194,0,1,206],[1,1,4,2,1,4,1,1,4,1,2,25,0,1,28,0,91,37,0,1,187,0,1,4,0,1,195,0,1,196,0,1,207],[4,1,4,3,2,8,0,1,8,0,91,31,0,1,188,1,1,4,0,1,197,0,1,208],[8,2,9,0,1,9,0,83,32,0,7,38,0,1,59,0,1,189,1,1,4,0,1,198,0,1,209],[8,2,26,0,1,29,0,83,33,0,7,39,0,1,60,0,1,190,2,1,199,0,1,210],[8,1,4,0,1,8,0,1,8,0,83,34,0,2,3,0,5,41,0,1,9,0,1,191,2,1,4,0,1,211],[8,1,4,0,1,9,0,1,4,0,46,51,0,1,133,0,27,135,0,9,172,0,2,4,0,1,42,0,1,44,0,1,47,0,2,116,0,1,183,0,1,192,3,1,212],[9,1,27,1,46,36,0,1,36,0,27,36,0,9,36,1,1,4,0,1,4,0,1,45,0,1,48,0,2,4,0,1,8,0,1,4,3,1,213],[9,1,4,1,46,37,0,1,37,0,27,37,0,9,37,1,1,40,0,1,43,0,1,46,0,1,49,0,2,4,0,1,9,0,1,4,3,1,4],[9,1,4,1,46,31,0,1,31,0,27,31,0,1,4,0,8,31,2,1,4,0,1,4,0,1,50,2,1,184,0,1,193],[11,44,32,0,2,38,0,1,32,0,26,32,0,1,38,1,8,32,2,1,4,0,1,4,0,1,4,2,1,8],[11,44,33,0,2,39,0,1,33,0,26,33,0,1,39,1,8,33,7,1,9],[11,2,4,0,41,34,0,1,78,0,1,4,0,1,41,0,1,78,0,26,34,0,1,41,1,8,34,7,1,185],[13,2,52,0,7,57,0,18,77,0,8,105,0,5,123,0,1,132,0,1,103,0,1,4,0,1,116,0,1,125,0,17,136,0,9,162,0,1,116,1,8,173,7,1,4],[13,2,36,0,7,36,0,18,36,0,8,36,0,5,36,0,1,36,0,1,104,1,1,4,0,1,126,0,17,36,0,9,36,0,1,4,1,8,36,7,1,4],[13,2,37,0,7,37,0,18,37,0,8,37,0,5,37,0,1,37,0,1,4,1,1,4,0,1,127,0,17,37,0,9,37,0,1,4,1,8,37],[13,2,31,0,7,31,0,18,31,0,8,31,0,5,31,0,1,31,3,1,134,0,17,31,0,9,31,2,8,31],[13,1,32,0,1,38,0,7,32,0,16,32,0,2,38,0,8,32,0,3,32,0,2,38,0,1,32,3,1,4,0,16,32,0,1,38,0,7,32,0,2,38,2,1,4,0,7,32],[13,1,33,0,1,39,0,7,33,0,15,33,0,1,80,0,1,39,0,1,102,0,8,33,0,3,33,0,2,39,0,1,33,3,1,4,0,16,33,0,1,39,0,7,33,0,2,39,2,1,182,0,2,4,0,5,33],[13,1,34,0,1,41,0,7,34,0,13,34,0,2,78,0,1,81,0,1,101,0,1,4,0,8,34,0,3,34,0,1,4,0,1,41,0,1,78,4,16,34,0,1,74,0,6,34,0,1,151,0,1,74,0,1,163,3,1,4,0,1,181,0,5,34],[13,1,55,0,1,44,0,7,58,0,1,4,0,9,83,0,1,92,0,1,95,0,1,98,0,1,79,0,1,93,0,1,82,0,1,74,0,1,4,0,4,106,0,1,115,0,3,117,0,3,124,0,1,4,0,1,116,0,1,4,4,16,137,0,1,48,0,4,164,0,2,169,0,1,116,0,1,48,0,1,4,4,1,4,0,5,174],[13,1,36,0,1,45,0,6,36,0,1,76,1,9,36,0,1,4,0,1,96,0,1,36,0,1,4,0,1,85,0,1,4,0,1,48,1,2,36,0,2,110,0,1,36,0,1,4,0,2,36,0,3,36,0,1,4,0,1,4,0,1,4,4,16,36,0,1,49,0,4,36,0,2,36,0,1,81,0,1,49,0,1,4,4,1,4,0,5,36],[13,1,37,0,1,53,0,6,37,0,1,36,1,9,37,0,1,4,0,1,4,0,1,37,0,1,4,0,1,94,1,1,49,1,2,37,0,2,4,0,1,37,0,1,4,0,2,37,0,3,37,1,1,4,5,16,37,0,1,50,0,4,37,0,2,37,0,1,4,0,1,50,6,5,37],[13,1,31,0,1,54,0,6,31,0,1,37,1,9,31,1,1,97,0,1,31,1,1,4,1,1,4,1,2,31,0,2,111,0,1,31,1,2,31,0,3,31,7,16,31,0,1,75,0,4,31,0,2,31,1,1,167,6,5,31],[13,1,32,0,1,54,0,2,32,0,2,38,0,2,59,0,1,31,1,8,32,0,1,38,1,1,4,0,1,59,3,1,4,1,2,32,0,1,112,0,1,113,0,1,38,1,2,32,0,3,32,7,15,32,0,1,38,0,1,4,0,3,32,0,1,38,0,2,32,1,1,168,6,5,32],[13,1,33,0,1,4,0,2,33,0,2,39,0,2,60,0,1,38,1,8,33,0,1,4,1,1,4,0,1,60,5,2,33,0,1,4,0,1,114,0,1,39,1,2,33,0,3,33,7,14,33,0,1,138,0,1,39,1,3,33,0,1,102,0,1,33,0,1,80,1,1,4,6,5,33],[13,1,34,1,2,34,0,1,3,0,1,74,0,2,9,0,1,39,1,7,34,0,1,78,3,1,9,5,1,34,0,1,78,0,1,4,0,1,4,0,1,41,1,2,34,0,2,34,0,1,78,7,14,34,0,1,4,0,1,81,1,3,34,0,1,4,0,1,34,0,1,4,8,5,34],[13,1,56,1,2,64,0,1,4,0,1,48,0,2,61,0,1,4,1,7,87,0,1,84,3,1,99,5,1,107,0,1,4,0,1,4,1,1,116,1,2,118,0,2,129,0,1,125,7,5,139,0,9,149,0,1,4,0,1,4,1,1,165,0,2,166,0,1,4,0,1,170,9,5,175],[13,1,4,1,1,36,0,1,67,1,1,49,0,2,8,2,5,36,0,2,90,0,1,85,3,1,4,5,1,36,3,1,4,1,2,36,0,2,36,0,1,126,7,5,36,0,9,36,3,1,36,0,2,36,1,1,36,9,2,4,0,3,36],[13,1,4,1,1,37,0,1,68,1,1,50,0,2,9,2,5,37,0,2,4,0,1,86,3,1,100,5,1,37,3,1,4,1,2,37,0,2,37,0,1,127,7,5,37,0,9,37,3,1,37,0,2,37,1,1,37,9,2,177,0,3,37],[15,1,31,0,1,69,1,1,75,0,2,62,2,5,31,0,2,91,0,1,4,3,1,4,5,1,31,5,2,31,0,2,31,0,1,128,7,5,31,0,9,31,3,1,31,0,2,31,1,1,31,9,1,4,0,1,178,0,3,31],[15,1,59,0,1,70,1,1,4,0,2,8,2,1,4,0,4,32,0,2,4,10,1,32,5,2,32,0,1,32,0,1,38,0,1,4,7,4,32,0,1,38,0,8,32,0,1,38,3,1,38,0,1,32,0,1,38,1,1,32,9,1,180,0,1,179,0,3,32],[15,1,60,0,1,71,2,2,9,2,1,4,0,4,33,1,1,4,10,1,33,5,2,33,0,1,33,0,1,39,0,1,4,7,4,33,0,1,39,0,8,33,0,1,150,3,1,39,0,1,33,0,1,39,1,1,33,9,1,4,0,1,4,0,3,33],[15,1,9,0,1,72,2,1,4,0,1,63,3,3,34,0,1,78,12,1,34,5,2,34,0,1,78,0,1,74,8,4,34,0,1,41,0,8,34,0,1,151,3,1,41,0,1,78,0,1,74,1,1,78,9,1,4,1,2,34,0,1,78],[15,1,65,0,1,73,3,1,8,3,3,88,0,1,4,12,1,108,5,2,119,0,1,125,0,1,48,8,3,140,0,1,147,0,1,116,0,8,153,0,1,116,3,1,116,0,1,79,0,1,48,1,1,171,11,2,176,0,1,4],[15,1,4,0,1,4,3,1,4,3,3,36,13,1,36,5,2,36,0,1,126,0,1,49,8,3,36,0,1,36,0,1,146,0,8,36,0,1,81,3,1,4,0,1,4,0,1,49,1,1,4,11,1,4,0,1,36],[15,1,66,0,1,4,3,1,4,3,3,37,13,1,37,5,2,37,0,1,127,0,1,50,8,3,37,0,1,37,0,1,8,0,8,37,0,1,152,3,1,4,0,1,4,0,1,50,13,1,4,0,1,37],[24,3,31,13,1,31,5,2,31,0,1,4,0,1,85,8,3,31,0,1,31,0,1,4,0,8,31,6,1,4,13,1,4,0,1,31],[24,3,32,13,1,59,5,2,59,1,1,130,8,3,32,0,1,59,1,8,32,6,1,66,14,1,38],[24,3,89,13,1,60,5,2,60,1,1,85,8,3,33,0,1,60,1,8,33,21,1,39],[24,3,4,13,1,109,5,2,9,1,1,131,8,2,34,0,1,78,0,1,109,1,8,34,21,1,41],[24,3,4,13,1,4,5,2,120,1,1,4,8,2,141,0,1,84,0,1,148,1,8,154,21,1,116],[46,1,4,0,1,8,10,1,36,0,1,143,0,1,4,0,1,4,1,8,36,21,1,4],[46,1,4,0,1,9,10,1,37,0,1,4,1,1,4,1,8,37,21,1,4],[47,1,121,10,1,31,0,1,144,3,8,31],[47,1,8,10,1,32,0,1,145,3,8,32],[47,1,9,10,1,33,0,1,114,3,8,33],[47,1,122,10,1,34,0,1,4,3,7,34,0,1,151],[47,1,4,10,1,142,0,1,4,3,7,155,0,1,116],[47,1,4,10,1,36,4,7,36,0,1,81],[58,1,37,4,7,37,0,1,4],[58,1,31,4,7,31],[58,1,38,4,5,32,0,2,38],[58,1,39,4,5,33,0,2,39],[58,1,49,4,5,34,0,2,41],[58,1,50,4,3,156,0,2,158,0,1,42,0,1,116],[58,1,85,4,3,36,0,2,36,0,1,157,0,1,4],[58,1,130,4,3,37,0,2,37,0,1,4,0,1,4],[58,1,85,4,3,31,0,2,31,0,1,4],[58,1,131,4,3,38,0,1,32,0,1,38,0,1,66],[58,1,4,4,1,39,0,2,150,0,1,33,0,1,150],[63,1,4,0,2,151,0,1,34,0,1,151],[64,2,116,0,1,159,0,1,116],[64,2,81,0,1,160,0,1,4],[64,1,4,0,1,152,0,1,161,0,1,4],[66,1,4,0,1,4],[66,1,4],[66,1,4]];
+numTicks = 107;
+
+let rangeMin = 0;
+let rangeMax = 1;
+let topLevel = 0;
+let query = '';
+let graphWidth, pxPerTick;
+
+const pxPerLevel = 18;
+const collapseThreshold = 5;
+const hideThreshold = 0.5;
+const labelThreshold = 20;
+
+highlightEl.style.height = pxPerLevel + 'px';
+
+if (levels) {
+    init();
+}
+
+function init() {
+    document.body.classList.add('loaded');
+
+    // delta-decode bar positions
+    for (const level of levels) {
+        let prev = 0;
+        for (let i = 0; i < level.length; i += 3) {
+            level[i] += prev;
+            prev = level[i] + level[i + 1];
+        }
+    }
+
+    updateFromHash();
+    render();
+}
+
+window.onhashchange = () => {
+    updateFromHash();
+    render();
+};
+canvas.onclick = (e) => {
+    const {i, j} = xyToBar(e.offsetX, e.offsetY);
+    if (j === -1) return;
+    window.location.hash = [i, j].join(',');
+    removeHover();
+};
+document.getElementById('reset').onclick = () => {
+    searchEl.value = query = '';
+    window.location.hash = '';
+    render();
+};
+window.onresize = render;
+
+searchEl.oninput = (e) => {
+    query = e.target.value;
+    render();
+};
+
+function updateFromHash() {
+    const [i, j] = window.location.hash.substr(1).split(',').map(Number);
+
+    if (!isNaN(i) && !isNaN(j)) {
+        topLevel = i;
+        rangeMin = levels[i][j] / numTicks;
+        rangeMax = (levels[i][j] + levels[i][j + 1]) / numTicks;
+    } else {
+        topLevel = 0;
+        rangeMin = 0;
+        rangeMax = 1;
+    }
+}
+
+function tickToX(i) {
+    return (i - numTicks * rangeMin) * pxPerTick;
+}
+
+function render() {
+    if (!levels) return;
+
+    graphWidth = canvas.width = canvas.clientWidth;
+    canvas.height = pxPerLevel * (levels.length - topLevel);
+    canvas.style.height = canvas.height + 'px';
+
+    if (devicePixelRatio > 1) {
+        canvas.width *= 2;
+        canvas.height *= 2;
+        ctx.scale(2, 2);
+    }
+
+    pxPerTick = graphWidth / numTicks / (rangeMax - rangeMin);
+
+    ctx.textBaseline = 'middle';
+    ctx.font = '10px Tahoma, sans-serif';
+    ctx.strokeStyle = 'white';
+
+    for (let i = 0; i < levels.length - topLevel; i++) {
+        const level = levels[topLevel + i];
+
+        for (let j = 0; j < level.length; j += 3) {
+            const barIndex = level[j];
+            const x = tickToX(barIndex);
+            const y = i * pxPerLevel;
+            let numBarTicks = level[j + 1];
+
+            const inQuery = query && (names[level[j + 2]].indexOf(query) >= 0) || false;
+
+            // merge very small blocks into big "collapsed" ones for performance
+            const collapsed = numBarTicks * pxPerTick <= collapseThreshold;
+            if (collapsed) {
+                while (
+                    j < level.length - 3 &&
+                    barIndex + numBarTicks === level[j + 3] &&
+                    level[j + 4] * pxPerTick <= collapseThreshold &&
+                    (inQuery === (query && (names[level[j + 5]].indexOf(query) >= 0) || false))
+                ) {
+                    j += 3;
+                    numBarTicks += level[j + 1];
+                }
+            }
+
+            const sw = numBarTicks * pxPerTick - (collapsed ? 0 : 0.5);
+            const sh = pxPerLevel - 0.5;
+
+            if (x < -1 || x + sw > graphWidth + 1 || sw < hideThreshold) continue;
+
+            ctx.beginPath();
+            ctx.rect(x, y, sw, sh);
+
+            const ratio = numBarTicks / numTicks;
+
+            if (!collapsed) {
+                ctx.stroke();
+                const intensity = Math.min(1, ratio * Math.pow(1.16, i) / (rangeMax - rangeMin));
+                const h = 50 - 50 * intensity;
+                const l = 65 + 7 * intensity;
+                ctx.fillStyle = inQuery ? 'lightgreen' : `hsl(${h}, 100%, ${l}%)`;
+            } else {
+                ctx.fillStyle = inQuery ? 'lightgreen' : '#eee';
+            }
+            ctx.fill();
+
+            if (!collapsed && sw >= labelThreshold) {
+
+                const percent = Math.round(10000 * ratio) / 100;
+                const name = `${names[level[j + 2]]} (${percent}%, ${numBarTicks} samples)`;
+
+                ctx.save();
+                ctx.clip();
+                ctx.fillStyle = 'black';
+                ctx.fillText(name, Math.max(x, 0) + 1, y + sh / 2);
+                ctx.restore();
+            }
+        }
+    }
+}
+
+// pixel coordinates to bar coordinates in the levels array
+function xyToBar(x, y) {
+    const i = Math.floor(y / pxPerLevel) + topLevel;
+    const j = binarySearchLevel(x, levels[i]);
+    return {i, j};
+}
+
+// binary search of a block in a stack level
+function binarySearchLevel(x, level) {
+    let i = 0;
+    let j = level.length - 3;
+    while (i <= j) {
+        const m = 3 * ((i / 3 + j / 3) >> 1);
+        const x0 = tickToX(level[m]);
+        const x1 = tickToX(level[m] + level[m + 1]);
+        if (x0 <= x && x1 >= x) {
+            return x1 - x0 > collapseThreshold ? m : -1;
+        }
+        if (x0 > x) {
+            j = m - 3;
+        } else {
+            i = m + 3;
+        }
+    }
+    return -1;
+}
+
+if (window.orientation === undefined) {
+    canvas.onmousemove = addHover;
+    canvas.onmouseout = window.onscroll = removeHover;
+}
+
+function removeHover() {
+    canvas.style.cursor = '';
+    highlightEl.style.display = 'none';
+    tooltipEl.style.display = 'none';
+}
+
+function addHover(e) {
+    const {i, j} = xyToBar(e.offsetX, e.offsetY);
+
+    if (j === -1 || e.offsetX < 0 || e.offsetX > graphWidth) {
+        removeHover();
+        return;
+    }
+
+    canvas.style.cursor = 'pointer';
+
+    const level = levels[i];
+    const x = tickToX(level[j]);
+    const y = (i - topLevel) * pxPerLevel;
+    const sw = tickToX(level[j] + level[j + 1]) - x;
+
+    highlightEl.style.display = 'block';
+    highlightEl.style.left = x + 'px';
+    highlightEl.style.top = (canvas.offsetTop + y) + 'px';
+    highlightEl.style.width = sw + 'px';
+
+    const numBarTicks = level[j + 1];
+    const percent = Math.round(10000 * numBarTicks / numTicks) / 100;
+    const time = `<span class="time">(${percent}%, ${numBarTicks} samples)</span>`;
+    let content = names[level[j + 2]];
+    if (content[0] !== '(') content = content.replace(' ', ` ${time}<br><span class="path">`) + '</span>';
+    else content += ` ${time}`;
+
+    tooltipEl.innerHTML = content;
+    tooltipEl.style.display = 'block';
+    tooltipEl.style.left = (Math.min(e.offsetX + 15 + tooltipEl.clientWidth, graphWidth) - tooltipEl.clientWidth) + 'px';
+    tooltipEl.style.top = (canvas.offsetTop + e.offsetY + 12) + 'px';
+}
+
+// (function frame() { if (levels) render(); requestAnimationFrame(frame); })();
+
+
+</script>
+</body>
+</html>
