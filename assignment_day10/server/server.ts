@@ -2,7 +2,7 @@ import koa from "koa";
 import bodyParser from "koa-bodyparser";
 import json from "koa-json";
 // import logger from "koa-logger";
-import { router } from "./src/controller"
+import { router } from "./server/src/controller"
 
 export const app = new koa();
 app.use(json()).use(bodyParser())
